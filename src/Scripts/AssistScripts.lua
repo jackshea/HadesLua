@@ -1,28 +1,30 @@
-﻿OnControlPressed {"Assist",
+﻿-- 当按下控制键时触发“Assist”事件的处理函数
+OnControlPressed {"Assist",
                   function(triggerArgs)
-
+                      -- 如果当前存在活动屏幕，则不执行
                       if not IsEmpty(ActiveScreens) then
                           return
                       end
-
                       local target = triggerArgs.UseTarget
+                      -- 如果存在目标，并且目标有名称、辅助交互函数以及该函数存在，则执行对应的辅助交互函数并返回
                       if target and target.Name and target.AssistInteractFunction and _G[target.AssistInteractFunction] then
                           _G[target.AssistInteractFunction]()
                           return
                       end
-
+                      -- 如果可以释放辅助技能，则执行辅助技能释放函数，否则进行辅助失败的呈现
                       if CanFireAssist() then
                           DoAssist(CurrentRun.Hero)
                       else
                           if GameState.LastAssistTrait ~= nil then
                               AssistFailedPresentation(CurrentRun.Hero)
                           end
-                          -- no assist presentation
-                          DebugPrint({Text = " not doing assist "})
+                          -- 没有辅助技能的呈现
+                          DebugPrint({Text = "未执行辅助技能"})
                       end
                   end
 }
 
+-- 判断是否可以释放辅助技能的函数
 function CanFireAssist()
     if not CurrentRun
         or not CurrentRun.Hero
@@ -48,10 +50,12 @@ function CanFireAssist()
     return true
 end
 
+-- 检查辅助提示的函数
 function CheckAssistHint(source, args)
     thread(AssistHintDelay, source, args)
 end
 
+-- 辅助提示延迟处理函数
 function AssistHintDelay(source, args)
     wait(args.Delay, RoomThreadName)
     if CanFireAssist() then
@@ -59,6 +63,7 @@ function AssistHintDelay(source, args)
     end
 end
 
+-- 执行辅助技能的函数
 function DoAssist(unit)
     CurrentRun.CurrentRoom.UsedAssist = true
     for i, assistData in pairs(unit.AssistWeapons) do
@@ -96,6 +101,7 @@ function DoAssist(unit)
     end
 end
 
+-- 添加辅助武器的函数
 function AddAssistWeapons(unit, traitData)
     if traitData.AddAssist == nil then
         return
@@ -115,6 +121,7 @@ function AddAssistWeapons(unit, traitData)
     table.insert(unit.AssistWeapons, assistData)
 end
 
+-- 移除辅助武器的函数
 function RemoveAssistWeapons(unit, traitData)
     if unit.AssistWeapons == nil or traitData.AddAssist == nil then
         return
@@ -127,10 +134,11 @@ function RemoveAssistWeapons(unit, traitData)
     end
 end
 
+-- 辅助技能“SisyphusLootSprinkle”的函数
 function SisyphusLootSprinkle(assistData)
     local locationId = GetClosest({Id = CurrentRun.Hero.ObjectId, DestinationName = "EnemyTeam", IgnoreInvulnerable = true, IgnoreHomingIneligible = true, Distance = 500, RequiredLocationUnblocked = true})
     if locationId == 0 then
-        -- Try again, allowing for blocked targets
+        -- 再次尝试，允许被阻挡的目标
         locationId = GetClosest({Id = CurrentRun.Hero.ObjectId, DestinationName = "EnemyTeam", IgnoreInvulnerable = true, IgnoreHomingIneligible = true, Distance = 500})
     end
     if locationId == 0 then
@@ -150,6 +158,7 @@ function SisyphusLootSprinkle(assistData)
     Destroy({Id = targetId})
 end
 
+-- 辅助技能“AchillesPatroclusAssist”的函数
 function AchillesPatroclusAssist(assistData)
 
     wait(0.7, RoomThreadName)
@@ -169,6 +178,7 @@ function AchillesPatroclusAssist(assistData)
     FireWeaponFromUnit({Weapon = secondWeapon, Id = CurrentRun.Hero.ObjectId, DestinationId = nextTargetId, FireFromTarget = true})
 end
 
+-- 辅助技能“SkellyAssist”的函数
 function SkellyAssist()
     local enemyName = "TrainingMeleeSummon"
     local enemyData = EnemyData[enemyName]
@@ -186,6 +196,7 @@ function SkellyAssist()
     CurrentRun.CurrentRoom.TauntTargetId = newEnemy.ObjectId
 end
 
+-- 辅助技能“DusaAssist”的函数
 function DusaAssist(assistData)
 
     local enemyName = "DusaSummon"
@@ -205,6 +216,7 @@ function DusaAssist(assistData)
     thread(EndDusaAssist, newEnemy, assistData)
 end
 
+-- 结束Dusa辅助的函数
 function EndDusaAssist(enemy, assistData)
     wait(assistData.Duration, RoomThreadName)
     thread(PlayVoiceLines, enemy.AssistEndedVoiceLines)
