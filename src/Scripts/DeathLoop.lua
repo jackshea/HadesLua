@@ -1,3 +1,4 @@
+-- 杀死主角函数，处理玩家死亡的主要逻辑
 function KillHero(victim, triggerArgs)
     local killer = triggerArgs.AttackerTable
     local currentRun = CurrentRun
@@ -38,11 +39,13 @@ function KillHero(victim, triggerArgs)
     end
 end
 
+-- 表面杀死主角函数，在指定延迟后调用KillHero
 function SurfaceKillHero(source, args)
     wait(args.WaitTime or 0)
     KillHero(CurrentRun.Hero, args)
 end
 
+-- 处理死亡函数，管理玩家死亡后的游戏状态和转换
 function HandleDeath(currentRun, killer, killingUnitWeapon)
 
     if GetConfigOptionValue({Name = "EditingMode"}) then
@@ -107,6 +110,7 @@ function HandleDeath(currentRun, killer, killingUnitWeapon)
     LoadMap({Name = deathMap, ResetBinks = true, ResetWeaponBinks = true})
 end
 
+-- 死亡区域加载事件处理函数，在加载DeathArea地图时触发
 OnAnyLoad {"DeathArea",
            function(triggerArgs)
 
@@ -128,6 +132,7 @@ OnAnyLoad {"DeathArea",
            end
 }
 
+-- 特定死亡区域房间加载事件处理函数
 OnAnyLoad {"DeathAreaBedroom DeathAreaBedroomHades DeathAreaOffice RoomPreRun",
            function(triggerArgs)
 
@@ -142,6 +147,7 @@ OnAnyLoad {"DeathAreaBedroom DeathAreaBedroomHades DeathAreaOffice RoomPreRun",
            end
 }
 
+-- 开始死亡循环函数，在玩家死亡后初始化死亡区域
 function StartDeathLoop(currentRun)
 
     DisableCombatControls()
@@ -164,6 +170,7 @@ function StartDeathLoop(currentRun)
     ShowCombatUI()
 end
 
+-- 设置死亡区域函数，初始化死亡区域的各种元素和触发器
 function SetupDeathArea(currentRun)
 
     StartRoomPreLoadBinks({
@@ -185,6 +192,7 @@ function SetupDeathArea(currentRun)
 
 end
 
+-- 死亡区域切换房间函数，处理在死亡区域内不同房间之间的切换
 function DeathAreaSwitchRoom(source, args)
     ClearEffect({Id = CurrentRun.Hero.ObjectId, All = true, BlockAll = true, })
     NextHeroStartPoint = args.HeroStartPoint
@@ -216,17 +224,7 @@ function DeathAreaSwitchRoom(source, args)
     LoadMap({Name = args.Name, ResetBinks = resetBinks})
 end
 
-function SetupCamera(source, args)
-    args = args or {}
-    if source.CameraZoomWeights ~= nil then
-        for id, weight in pairs(source.CameraZoomWeights) do
-            SetCameraZoomWeight({Id = id, Weight = weight, ZoomSpeed = 1.0})
-        end
-    end
-    AdjustZoom({Fraction = source.ZoomFraction or 1.0, LerpTime = args.LerpTime})
-    LockCamera({Ids = {CurrentRun.Hero.ObjectId}, Duration = args.Duration})
-end
-
+-- 死亡区域房间转换函数，处理进入新的死亡区域房间的逻辑
 function DeathAreaRoomTransition(source, args)
 
     AddInputBlock({Name = "DeathAreaTransition"})
@@ -294,6 +292,19 @@ function DeathAreaRoomTransition(source, args)
     CheckAutoObjectiveSets(currentRun, "RoomStart")
 end
 
+-- 设置摄像机函数，调整游戏摄像机的位置和缩放
+function SetupCamera(source, args)
+    args = args or {}
+    if source.CameraZoomWeights ~= nil then
+        for id, weight in pairs(source.CameraZoomWeights) do
+            SetCameraZoomWeight({Id = id, Weight = weight, ZoomSpeed = 1.0})
+        end
+    end
+    AdjustZoom({Fraction = source.ZoomFraction or 1.0, LerpTime = args.LerpTime})
+    LockCamera({Ids = {CurrentRun.Hero.ObjectId}, Duration = args.Duration})
+end
+
+-- 解锁死亡区域交互物体函数，根据游戏进度解锁特定交互物体
 function UnlockDeathAreaInteractbles()
 
     local shopIds = {50056}
@@ -309,6 +320,7 @@ function UnlockDeathAreaInteractbles()
 
 end
 
+-- 使用逃脱门函数，处理玩家使用逃脱门开始新的逃脱尝试
 function UseEscapeDoor(usee, args)
 
     if GetNumRunsCleared() > 0 or GameState.Flags.HardMode then
@@ -319,6 +331,7 @@ function UseEscapeDoor(usee, args)
     end
 end
 
+-- 重新开始函数，初始化新的游戏运行
 function StartOver()
 
     AddInputBlock({Name = "StartOver"})
@@ -349,6 +362,7 @@ function StartOver()
 
 end
 
+-- 闪回离开卧室函数，处理闪回场景中离开卧室的逻辑
 function FlashbackLeftBedroom(source)
     AdvanceFlashback()
     source.IgnoreClamps = true
@@ -356,6 +370,7 @@ function FlashbackLeftBedroom(source)
     CreateCameraWalls({ })
 end
 
+-- 检查礼物目标函数，提示玩家关于礼物系统的信息
 function CheckGiftObjective()
     wait(1.5)
     if HasResource("GiftPoints", 0) then
@@ -363,6 +378,7 @@ function CheckGiftObjective()
     end
 end
 
+-- 生成骷髅函数，在训练区域生成骷髅训练伙伴
 function SpawnSkelly(waitTime)
 
     GameState.Flags.SkellyUnlocked = true
@@ -378,6 +394,7 @@ function SpawnSkelly(waitTime)
 
 end
 
+-- 检查花园开放函数，处理花园区域的开放条件和相关设置
 function CheckGardenOpen(eventSource, args)
     if args.DeleteGroups then
         for k, groupName in pairs(args.DeleteGroups) do

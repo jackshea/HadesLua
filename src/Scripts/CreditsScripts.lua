@@ -1,5 +1,7 @@
 Import "CreditsData.lua"
 
+-- 启动游戏结束字幕/致谢界面
+-- 处理字幕滚动、文本显示和屏幕元素创建
 function StartCredits(args)
     ScreenAnchors.Credits = {}
     local scrollDistance = 1080 + 3000
