@@ -1,4 +1,5 @@
-﻿function ShowBoonInfoScreen(lootName)
+-- 显示祝福信息屏幕，展示特定祝福的详细信息
+function ShowBoonInfoScreen(lootName)
     OnScreenOpened({Flag = "BoonInfoScreen", PersistCombatUI = true})
     SetConfigOption({Name = "ExclusiveInteractGroup", Value = "Combat_Menu_TraitTray_Backing"})
 
@@ -78,6 +79,7 @@
     HandleScreenInput(ScreenAnchors.BoonInfoScreen)
 end
 
+-- 创建祝福信息按钮，用于在祝福信息屏幕中显示特定特性
 function CreateBoonInfoButton(traitName, index)
     local traitInfo = {}
     table.insert(ScreenAnchors.BoonInfoScreen.TraitContainers, traitInfo)
@@ -144,6 +146,7 @@ function CreateBoonInfoButton(traitName, index)
     end
 end
 
+-- 创建特性需求显示，展示获取特定特性所需的条件
 function CreateTraitRequirements(traitName)
     local screen = ScreenAnchors.BoonInfoScreen
     Destroy({Ids = screen.TraitRequirements})
@@ -272,6 +275,7 @@ function CreateTraitRequirements(traitName)
     end
 end
 
+-- 创建特性需求列表，显示一组相关的特性需求
 function CreateTraitRequirementList(screen, headerTextArgs, traitList, startY, metRequirement)
     local startX = 0
     local originalY = startY
@@ -375,6 +379,8 @@ function CreateTraitRequirementList(screen, headerTextArgs, traitList, startY, m
     startY = startY + 35
     return startY
 end
+
+-- 鼠标悬停在祝福信息按钮上时的处理函数
 OnMouseOver {"BoonInfoButton",
              function(triggerArgs)
 
@@ -400,6 +406,7 @@ OnMouseOver {"BoonInfoButton",
              end
 }
 
+-- 鼠标离开祝福信息按钮上时的处理函数
 OnMouseOff {"BoonInfoButton",
             function(triggerArgs)
                 screen = ScreenAnchors.BoonInfoScreen
@@ -451,6 +458,7 @@ function UpdateBoonInfoPageButtons (screen)
     end
 end
 
+-- 更新祝福信息按钮的显示内容
 function UpdateBoonInfoButtons(screen)
     local numDisplayed = 1
     for i = screen.StartingIndex, screen.StartingIndex + BoonInfoScreenData.NumPerPage - 1 do
@@ -564,6 +572,7 @@ function UpdateBoonInfoButtons(screen)
     end
 end
 
+-- 关闭祝福信息屏幕
 function CloseBoonInfoScreen()
     if ScreenAnchors.BoonInfoScreen == nil or not ScreenAnchors.BoonInfoScreen.CanClose then
         return
@@ -599,6 +608,8 @@ function CloseBoonInfoScreen()
 
 end
 
+
+-- 填充祝福特性数据到祝福信息屏幕
 function BoonInfoPopulateTraits(screen)
     screen.HiddenTraits = {}
     screen.SortedTraitIndex = {}
