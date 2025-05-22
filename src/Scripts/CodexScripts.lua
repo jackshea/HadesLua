@@ -1,3 +1,4 @@
+-- 初始化法典系统
 function CodexInit()
     CodexStatus = CodexStatus or {}
     CodexStatus.SelectedChapterName = CodexStatus.SelectedChapterName or "Loot"
@@ -12,7 +13,7 @@ local lockedColor = Color.CodexLocked
 
 local selectedFont = "AlegreyaSansSCBold"
 local unselectedFont = "AlegreyaSansSCRegular"
-
+-- 增加法典条目的值
 function IncrementCodexValue(chapterName, entryName, amount)
     --[[
     if not CodexStatus.Enabled then
@@ -38,6 +39,7 @@ function IncrementCodexValue(chapterName, entryName, amount)
     IncrementTableValue(CodexStatus[chapterName][entryName], "Amount", amount)
 end
 
+-- 检查位置解锁
 function CheckLocationUnlock(eventSource, args)
     local wait = args.Wait or 2.5
     local biome = args.Biome
@@ -50,6 +52,7 @@ function CheckLocationUnlock(eventSource, args)
     end
 end
 
+-- 检查法典解锁
 function CheckCodexUnlock(chapterName, entryName, skipIncrement)
     if Codex[chapterName] == nil or Codex[chapterName].Entries[entryName] == nil then
         return
@@ -73,6 +76,7 @@ function CheckCodexUnlock(chapterName, entryName, skipIncrement)
     end
 end
 
+-- 获取法典条目的数量
 function GetCodexEntryAmount(chapterName, entryName)
     if chapterName == nil or entryName == nil then
         return
@@ -86,6 +90,7 @@ function GetCodexEntryAmount(chapterName, entryName)
     return CodexStatus[chapterName][entryName].Amount or 0
 end
 
+-- 解锁已存在的条目
 function UnlockExistingEntries()
     for chapterName, chapterData in pairs(Codex) do
         for entryName, entryData in pairs(Codex[chapterName].Entries) do
@@ -96,6 +101,7 @@ function UnlockExistingEntries()
     end
 end
 
+-- 解锁法典条目
 function UnlockCodexEntry(chapterName, entryName, entryIndex, skipToast)
 
     if chapterName == nil or entryName == nil then
@@ -141,6 +147,7 @@ function UnlockCodexEntry(chapterName, entryName, entryIndex, skipToast)
 
 end
 
+-- 检查是否拥有法典条目
 function HasCodexEntry(selectedEntryName)
     if not CodexStatus.Enabled then
         return false
@@ -156,6 +163,7 @@ function HasCodexEntry(selectedEntryName)
     return false
 end
 
+-- 选择法典条目
 function SelectCodexEntry(selectedEntryName)
     if not CodexStatus.Enabled then
         return
@@ -175,6 +183,7 @@ function SelectCodexEntry(selectedEntryName)
     end
 end
 
+-- 获取排序后的法典
 function GetSortedCodex()
     local sortedCodex = {}
     local orphans = {}
@@ -192,6 +201,7 @@ function GetSortedCodex()
     return sortedCodex
 end
 
+-- 检查是否有新条目
 function HasNewEntries()
     for chapterName, chapterData in pairs(Codex) do
         for entryName in pairs(Codex[chapterName].Entries) do
@@ -203,6 +213,7 @@ function HasNewEntries()
     return false
 end
 
+-- 检查章节是否有已解锁的条目
 function HasUnlockedEntries(chapterName)
     if not CodexStatus[chapterName] then
         return false
@@ -217,6 +228,7 @@ function HasUnlockedEntries(chapterName)
     return false
 end
 
+-- 选择附近已解锁的条目
 function SelectNearbyUnlockedEntry()
     local nearbyId = GetClosest({Id = CurrentRun.Hero.ObjectId, DestinationNames = {"NPCs", "ConsumableItems", "Loot", "EnemyTeam"}, Distance = 600})
     local nearbyGenusName = nil
@@ -245,6 +257,7 @@ end
 Due to slight differences in organization between chapters and entries
 a separate function was created to sort entries. Bug Alice to sweep this up.
 ]]--
+-- 获取排序后的法典子类别
 function GetSortedCodexSubcategory(subcategory)
     local sortedSubcategory = {}
     local orphans = {}
@@ -267,6 +280,7 @@ function GetSortedCodexSubcategory(subcategory)
     return sortedSubcategory
 end
 
+-- 打开法典屏幕
 function OpenCodexScreen()
     if not CodexStatus.Enabled then
         return
@@ -346,6 +360,7 @@ function OpenCodexScreen()
 
 end
 
+-- 更新法典章节
 function CodexUpdateChapters(screen)
 
     local chapterSpacing = 225
@@ -432,6 +447,7 @@ function CodexUpdateChapters(screen)
     end
 end
 
+-- 切换到上一章节
 function CodexPrevChapter(screen, button)
     if IsScreenOpen("BoonInfoScreen") or not screen.AllowInput then
         return
@@ -447,6 +463,7 @@ function CodexPrevChapter(screen, button)
     CodexOpenChapter(screen, prevChapterButton, {FirstOpen = true})
 end
 
+-- 切换到下一章节
 function CodexNextChapter(screen, button)
     if IsScreenOpen("BoonInfoScreen") or not screen.AllowInput then
         return
@@ -462,6 +479,7 @@ function CodexNextChapter(screen, button)
     CodexOpenChapter(screen, nextChapterButton, {FirstOpen = true})
 end
 
+-- 打开法典章节
 function CodexOpenChapter(screen, button, args)
     if not args then
         args = {}
@@ -613,6 +631,7 @@ function CodexOpenChapter(screen, button, args)
     UpdateChapterEntryArrows(screen)
 end
 
+-- 打开法典条目
 function CodexOpenEntry(screen, button)
     if not IsScreenOpen("Codex") or IsScreenOpen("BoonInfoScreen") then
         return
@@ -762,6 +781,7 @@ function CodexOpenEntry(screen, button)
     end
 end
 
+-- 关闭法典章节
 function CodexCloseChapter(screen, chapterName, chapterData)
 
     for entryName, entryData in pairs(chapterData.Entries) do
@@ -793,6 +813,7 @@ function CodexCloseChapter(screen, chapterName, chapterData)
     CodexCloseEntry(screen)
 end
 
+-- 关闭法典条目
 function CodexCloseEntry(screen, entryName)
 
     if screen.Components.EntryText ~= nil then
@@ -835,6 +856,7 @@ function CodexCloseEntry(screen, entryName)
 
 end
 
+-- 关闭法典屏幕
 function CloseCodexScreen(screen, button)
     if screen == nil then
         screen = CodexUI.Screen
@@ -897,6 +919,7 @@ function CloseCodexScreen(screen, button)
     end
 end
 
+-- 更新章节条目箭头
 function UpdateChapterEntryArrows(screen)
     if CodexStatus.SelectedChapterName == nil or CodexStatus.SelectedEntryNames[CodexStatus.SelectedChapterName] == nil then
         return
@@ -924,6 +947,7 @@ function UpdateChapterEntryArrows(screen)
     end
 end
 
+-- 向左滚动章节
 function CodexScrollChaptersLeft(screen, button)
     if not screen or not CodexUI.Screen or not IsScreenOpen("Codex") or not screen.AllowInput then
         return
@@ -944,6 +968,7 @@ function CodexScrollChaptersLeft(screen, button)
     CodexOpenChapter(screen, chapterButton, {FirstOpen = true})
 end
 
+-- 向右滚动章节
 function CodexScrollChaptersRight(screen, button)
     if not screen or not CodexUI.Screen or not IsScreenOpen("Codex") or not screen.AllowInput then
         return
@@ -962,6 +987,7 @@ function CodexScrollChaptersRight(screen, button)
     CodexOpenChapter(screen, chapterButton, {FirstOpen = true})
 end
 
+-- 向上滚动章节
 function CodexScrollChapterUp(screen, button)
     if not screen or not CodexUI.Screen or not IsScreenOpen("Codex") or not screen.AllowInput then
         return
@@ -980,6 +1006,7 @@ function CodexScrollChapterUp(screen, button)
     CodexOpenChapter(screen, CodexUI.Screen.Components[button.ChapterName], {FirstOpen = true, SelectLast = true})
 end
 
+-- 向下滚动章节
 function CodexScrollChapterDown(screen, button)
     if not screen or not CodexUI.Screen or not IsScreenOpen("Codex") or not screen.AllowInput then
         return
@@ -998,6 +1025,7 @@ function CodexScrollChapterDown(screen, button)
     CodexOpenChapter(screen, CodexUI.Screen.Components[button.ChapterName], {FirstOpen = true})
 end
 
+-- 创建关系栏
 function CreateRelationshipBar(screen, entryName)
     if GameState.Gift[entryName] == nil then
         return
@@ -1020,6 +1048,7 @@ function CreateRelationshipBar(screen, entryName)
     end
 end
 
+-- 处理关系变化
 function HandleRelationshipChanged(screen, chapterName, entryName)
     if GameState.Gift[entryName] == nil then
         return
@@ -1035,6 +1064,7 @@ end
 
 local codexHeld = false
 local codexOpenAnims = {"PortraitRespawnFillHalfSec", "PortraitRespawnComplete"}
+-- 开始打开法典
 function BeginOpeningCodex()
 
     if not CanOpenCodex() then
@@ -1050,6 +1080,7 @@ function BeginOpeningCodex()
     end
 end
 
+-- 检查是否可以打开法典
 function CanOpenCodex()
     if not CodexStatus.Enabled or GameState.Flags.Overlook then
         return false
@@ -1069,12 +1100,14 @@ function CanOpenCodex()
     return (not AreScreensActive() or OnlyBoonScreenOpen()) and IsInputAllowed({})
 end
 
+-- 检查是否只有祝福屏幕打开
 function OnlyBoonScreenOpen()
     local openScreens = TableLength(ActiveScreens)
 
     return (openScreens == 1 and AreScreensActive("BoonMenu")) or (openScreens == 2 and AreScreensActive("BoonMenu") and AreScreensActive("Codex"))
 end
 
+-- 取消打开法典
 function CancelOpeningCodex()
     if codexHeld then
         codexHeld = false
@@ -1092,13 +1125,14 @@ OnControlPressed {"Codex",
                       BeginOpeningCodex()
                   end
 }
-
+-- 获取武器法典图像
 function GetWeaponCodexImage(weaponName)
     if Codex.Weapons.Entries[weaponName] then
         return Codex.Weapons.Entries[weaponName].Image
     end
 end
 
+-- 计算法典条目总数
 function CalcNumTotalCodexEntries()
     local unlockCount = 0
     for chapterName, chapterData in pairs(Codex) do
@@ -1109,6 +1143,7 @@ function CalcNumTotalCodexEntries()
     return unlockCount
 end
 
+-- 计算已解锁的法典条目数量
 function CalcNumCodexEntriesUnlocked()
     local unlockCount = 0
     for chapterName, chapterData in pairs(Codex) do
@@ -1121,6 +1156,7 @@ function CalcNumCodexEntriesUnlocked()
     return unlockCount
 end
 
+-- 尝试打开法典祝福信息
 function AttemptOpenCodexBoonInfo()
 
     if CodexUI.Screen == nil or CodexUI.Screen.Components.CloseButton == nil or CodexUI.Screen.CloseTriggered then
