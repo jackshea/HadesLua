@@ -1,3 +1,4 @@
+-- 徽章购买展示函数，处理徽章购买时的视觉和音效展示
 function BadgePurchasePresentation(usee, badgeData)
 
     DebugPrint({Text = "Badge level = " .. GameState.BadgeRank})
@@ -85,6 +86,7 @@ function BadgePurchasePresentation(usee, badgeData)
 
 end
 
+-- 徽章资源消耗展示函数，处理购买徽章时资源消耗的视觉和音效
 function BadgeResourceSpendPresentation(usee, resourceCost)
     PlayInteractAnimation(usee.ObjectId, {SkipInputBlock = true})
     local resourceData = ResourceData[resourceCost.Name]
@@ -92,6 +94,7 @@ function BadgeResourceSpendPresentation(usee, resourceCost)
     wait(0.35)
 end
 
+-- 显示下一个可购买的徽章，更新UI显示和相关资源成本
 function ShowNextBadgeForPurchase(source, args)
     local nextRank = (GameState.BadgeRank or 0) + 1
     local nextBadgeData = GameData.BadgeData[GameData.BadgeOrderData[nextRank]]
@@ -137,6 +140,7 @@ function ShowNextBadgeForPurchase(source, args)
 
 end
 
+-- 徽章无法购买展示函数，当玩家资源不足时的反馈效果
 function BadgeCannotAffordPresentation(usee, nextBadgeData)
 
     PlaySound({Name = "/Leftovers/SFX/OutOfAmmo"})
