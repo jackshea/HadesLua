@@ -8,6 +8,7 @@ OnAnyLoad {
 
         if MusicName ~= nil and MusicId == nil then
             -- Out of sync (presumably from a load)
+            -- 加载时音乐状态不一致
             local restoreTrackName = MusicName
             local restoreMusicSection = MusicSection
             MusicName = nil
@@ -32,6 +33,7 @@ OnAnyLoad {
 
         if AmbientTrackName ~= nil and AmbientMusicSource ~= nil and AmbientMusicId == nil then
             -- Out of sync (presumably from a load)
+            -- 加载时环境音乐状态不一致
             local restoreTrackName = AmbientTrackName
             AmbientTrackName = nil
             wait(0.02) -- Need to wait for potential stored targets to spawn
@@ -51,6 +53,7 @@ OnAnyLoad {
     end
 }
 
+-- 延迟执行音频脚本
 function DeferredAudioScripts()
     for index, params in ipairs(DeferredPlayVoiceLines) do
         thread(PlayVoiceLinesReal, params[1], params[2], params[3], params[4])
@@ -60,12 +63,14 @@ end
 
 -- **Music**
 
+-- 音乐播放事件处理函数
 function MusicPlayerEvent(source, args)
     MusicPlayer(args.TrackName, args.MusicInfo, args.DestinationId)
 end
 
+-- 音乐播放器函数
 function MusicPlayer(trackName, musicInfo, destinationId)
-
+    -- 播放音乐
     if trackName == nil then
         return false
     end
@@ -73,17 +78,20 @@ function MusicPlayer(trackName, musicInfo, destinationId)
     if MusicName ~= nil and MusicName == trackName then
         -- Don't play an identical track that's already playing
         -- But do still update the source if it is being changed
+        -- 如果音乐已经在播放，则不再播放相同的音乐
         SetSoundSource({Id = MusicId, DestinationId = destinationId})
         return false
     end
 
     if MusicId ~= nil then
         -- Quick cut any music still playing
+        -- 停止当前播放的音乐
         StopSound({Id = MusicId, Duration = 0.25})
         MusicId = nil
     end
     if StoppingMusicId ~= nil then
         -- Quick cut any music still fading out
+        -- 停止当前淡出的音乐
         StopSound({Id = StoppingMusicId, Duration = 0.25})
         StoppingMusicId = nil
     end
@@ -99,6 +107,7 @@ function MusicPlayer(trackName, musicInfo, destinationId)
 
     if SecretMusicId ~= nil then
         -- Secret music has priority and is mutually exclusive so this must wait
+        -- 秘密音乐优先级高，互斥，因此必须等待
         SetVolume({Id = MusicId, Value = 0.0, Duration = 0.0})
         PauseSound({Id = MusicId, Duration = 0.0})
     end
@@ -107,23 +116,27 @@ function MusicPlayer(trackName, musicInfo, destinationId)
 
 end
 
+-- 秘密音乐播放器函数
 function SecretMusicPlayer(trackName, musicInfo)
-
+    -- 播放秘密音乐
     if trackName == nil then
         return false
     end
 
     if SecretMusicName == trackName then
         -- Don't play an identical track that's already playing
+        -- 如果秘密音乐已经在播放，则不再播放相同的音乐
         return
     end
 
     if MusicId ~= nil then
         -- Quick cut any music still playing
+        -- 停止当前播放的音乐
         PauseMusic()
     end
     if SecretMusicId ~= nil then
         -- Quick cut any music still playing
+        -- 停止当前播放的秘密音乐
         StopSound({Id = SecretMusicId, Duration = 0.25})
     end
 
@@ -140,8 +153,9 @@ function SecretMusicPlayer(trackName, musicInfo)
 
 end
 
+-- 停止秘密音乐
 function StopSecretMusic(smoothStop)
-
+    -- 停止秘密音乐
     if SecretMusicId == nil then
         return
     end
@@ -156,14 +170,21 @@ function StopSecretMusic(smoothStop)
 
 end
 
+-- 开始混沌低音
 function ChaosBassStart()
+    -- 开始混沌低音
     SetSoundCueValue({Names = {"ChaosBass"}, Id = SecretMusicId, Value = 1, Duration = 0.5})
 end
+
+-- 停止混沌低音
 function ChaosBassStop()
+    -- 停止混沌低音
     SetSoundCueValue({Names = {"ChaosBass"}, Id = SecretMusicId, Value = 0, Duration = 3})
 end
 
+-- 歌唱表现
 function SingingPresentation(source, ars)
+    -- 歌唱表现
     if source.SingingFx ~= nil then
         CreateAnimation({Name = source.SingingFx, DestinationId = source.ObjectId, OffsetX = source.SingingAnimOffsetX or source.AnimOffsetX, OffsetZ = source.AnimOffsetZ, Group = "Combat_UI_World"})
     end
@@ -175,8 +196,9 @@ function SingingPresentation(source, ars)
     end
 end
 
+-- 音乐家音乐
 function MusicianMusic(source, args)
-
+    -- 音乐家音乐
     if CurrentRun.BlockAmbientMusic then
         return
     end
@@ -187,6 +209,7 @@ function MusicianMusic(source, args)
     if args.TrackName == AmbientTrackName then
         -- Don't play an identical track that's already playing
         -- But do still update the source if it is being changed
+        -- 如果音乐已经在播放，则不再播放相同的音乐
         SetSoundSource({Id = AmbientMusicId, DestinationId = source.ObjectId})
         AmbientMusicSource = source
         return
@@ -194,6 +217,7 @@ function MusicianMusic(source, args)
 
     if AmbientMusicId ~= nil then
         -- Quick cut the previously playing id
+        -- 停止当前播放的音乐
         StopSound({Id = AmbientMusicId, Duration = 0.25})
         AmbientMusicId = nil
     end
@@ -215,12 +239,15 @@ end
 
 -- Workaround for FMOD bug, after a long play-session VO played in 2D can become inaudible.  Pausing and unpausing the sound fixes it.
 function PauseUnpauseSoundWorkaround(soundId)
+    -- 暂停解除声音故障解决方案
     wait(0.03)
     PauseSound({Id = soundId, Duration = 0})
     ResumeSound({Id = soundId, Duration = 0})
 end
 
+-- 停止音乐家音乐
 function StopMusicianMusic(source, args)
+    -- 停止音乐家音乐
     StopSound({Id = AmbientMusicId, Duration = args.Duration or 0.2})
     AmbientMusicId = nil
     AmbientTrackName = nil
@@ -229,8 +256,9 @@ function StopMusicianMusic(source, args)
     end
 end
 
+-- 设置默认音乐参数
 function SetDefaultMusicParams(trackName, musicId)
-
+    -- 设置默认音乐参数
     SetSoundCueValue({Names = {"Keys"}, Id = musicId, Value = 1})
     SetSoundCueValue({Names = {"Guitar", "Drums", "Bass"}, Id = musicId, Value = 1})
 
@@ -238,7 +266,9 @@ function SetDefaultMusicParams(trackName, musicId)
 
 end
 
+-- 随机音轨混合器
 function RandomStemMixer(currentRoom, musicId)
+    -- 随机音轨混合器
     if musicId == nil then
         return
     end
@@ -269,7 +299,9 @@ function RandomStemMixer(currentRoom, musicId)
     end
 end
 
+-- 音乐混合器
 function MusicMixer(mixArgs)
+    -- 音乐混合器
     if mixArgs == nil then
         return
     end
@@ -314,8 +346,9 @@ function MusicMixer(mixArgs)
 
 end
 
+-- 检查音乐事件
 function CheckMusicEvents(currentRun, musicEvents)
-
+    -- 检查音乐事件
     if musicEvents == nil then
         return
     end
@@ -336,13 +369,17 @@ function CheckMusicEvents(currentRun, musicEvents)
 
 end
 
+-- 开始Boss房间音乐
 function StartBossRoomMusic()
+    -- 开始Boss房间音乐
     SetMusicSection(2)
     local activeStemTable = {"Guitar", "Bass", "Drums"}
     SetSoundCueValue({Names = activeStemTable, Id = MusicId, Value = 1, Duration = 0.75})
 end
 
+-- 结束音乐
 function EndMusic(musicId, musicName, hardStopTime)
+    -- 结束音乐
     if musicId == nil then
         musicId = MusicId
     end
@@ -372,11 +409,15 @@ function EndMusic(musicId, musicName, hardStopTime)
 
 end
 
+-- 暂停音乐
 function PauseMusic()
+    -- 暂停音乐
     PauseSound({Id = MusicId, Duration = 0.2})
 end
 
+-- 恢复音乐
 function ResumeMusic(duration, delay)
+    -- 恢复音乐
     if MusicId == nil then
         return
     end
@@ -384,18 +425,24 @@ function ResumeMusic(duration, delay)
     ResumeSound({Id = MusicId, Duration = duration or 0.2})
 end
 
+-- 暂停环境音乐
 function PauseAmbientMusic()
+    -- 暂停环境音乐
     PauseSound({Id = AmbientMusicId, Duration = 0.2})
     PauseSound({Id = SecretMusicId, Duration = 0.2})
 end
 
+-- 恢复环境音乐
 function ResumeAmbientMusic()
+    -- 恢复环境音乐
     ResumeSound({Id = AmbientMusicId, Duration = 0.2})
     SetVolume({Id = AmbientMusicId, Value = 1.0})
     ResumeSound({Id = SecretMusicId, Duration = 0.2})
 end
 
+-- 设置音乐段落
 function SetMusicSection(section, musicId)
+    -- 设置音乐段落
     if section == nil then
         return
     end
@@ -409,12 +456,16 @@ function SetMusicSection(section, musicId)
     end
 end
 
+-- 设置高级工具提示混合
 function SetAdvancedTooltipMixing(value)
+    -- 设置高级工具提示混合
     value = value or 0
     SetSoundCueValue({Id = GetMixingId({}), Names = {"Wagon"}, Value = value})
 end
 
+-- 检查音乐是否正在播放
 function IsMusicPlaying()
+    -- 检查音乐是否正在播放
     if MusicId ~= nil and MusicId > 0 then
         return true
     end
@@ -424,6 +475,7 @@ end
 -- Music Marker logic
 OnMusicMarker {"Marker End",
                function(triggerArgs)
+                   -- 音乐标记逻辑
                    local markerName = triggerArgs.name
                    if markerName == "Marker End" then
                        notifyExistingWaiters("MusicTrackEnded")
@@ -433,7 +485,7 @@ OnMusicMarker {"Marker End",
 
 OnMusicMarker {"Shout",
                function(triggerArgs)
-
+                   -- 音乐标记逻辑
                    if not AllowShout then
                        return
                    end
@@ -457,8 +509,9 @@ OnMusicMarker {"Shout",
 }
 
 -- **AMBIENCE**
+-- 开始房间环境音效
 function StartRoomAmbience(currentRun, currentRoom)
-
+    -- 开始房间环境音效
     local newTrackName = nil
     if currentRoom.Encounter then
         newTrackName = currentRoom.Encounter.Ambience
@@ -468,11 +521,13 @@ function StartRoomAmbience(currentRun, currentRoom)
 
     if newTrackName == "None" then
         -- Silence requested
+        -- 请求静音
         StopSound({Id = AmbienceId, Duration = 0.5})
         AmbienceId = nil
         AmbienceName = nil
     elseif newTrackName ~= nil then
         -- Specific track requested
+        -- 请求特定音轨
         if newTrackName ~= AmbienceName then
             StopSound({Id = AmbienceId, Duration = 0.5})
             AmbienceId = PlaySound({Name = newTrackName, Duration = 0.5})
@@ -480,6 +535,7 @@ function StartRoomAmbience(currentRun, currentRoom)
         end
     else
         -- Nothing requested, use default biome track
+        -- 没有请求，使用默认生物音轨
         local ambienceTrackName = nil
         local biomeAmbienceTracks = AmbienceTracks[currentRoom.RoomSetName]
         if biomeAmbienceTracks ~= nil then
@@ -502,7 +558,9 @@ function StartRoomAmbience(currentRun, currentRoom)
 
 end
 
+-- 结束环境音效
 function EndAmbience(duration)
+    -- 结束环境音效
     StopSound({Id = AmbienceId, Duration = duration or 0.2})
     AmbienceId = nil
     StopSound({Id = AmbientMusicId, Duration = duration or 0.2})
@@ -514,22 +572,25 @@ end
 -- Minos Voice Debug
 OnKeyPressed {"Alt V", Name = "ToggleVoice",
               function(triggerArgs)
+                  -- Minos语音调试
                   if CurrentRun.CurrentRoom.IntroVO ~= nil then
                       PlayRemainingSpeech(CurrentRun.CurrentRoom.IntroVO)
                   end
               end
 }
 
+-- 音频初始化
 function AudioInit()
-
+    -- 音频初始化
     PlayedRandomLines = PlayedRandomLines or {}
     AllowShout = true
     BiomeMusicPlayCounts = BiomeMusicPlayCounts or {}
 
 end
 
+-- 播放随机符合条件的语音行
 function PlayRandomEligibleVoiceLines(voiceLineSets)
-
+    -- 播放随机符合条件的语音行
     while not IsEmpty(voiceLineSets) do
         local voiceLines = RemoveRandomValue(voiceLineSets)
         local playedSomething = PlayVoiceLines(voiceLines, true)
@@ -540,8 +601,9 @@ function PlayRandomEligibleVoiceLines(voiceLineSets)
 
 end
 
+-- 播放第一个符合条件的语音行
 function PlayFirstEligibleVoiceLines(voiceLineSets)
-
+    -- 播放第一个符合条件的语音行
     local highestIndex = GetHighestIndex(voiceLineSets)
     for index = 1, highestIndex do
         local voiceLines = voiceLineSets[index]
@@ -555,7 +617,9 @@ function PlayFirstEligibleVoiceLines(voiceLineSets)
 
 end
 
+-- 播放语音行
 function PlayVoiceLines(voiceLines, neverQueue, source, args)
+    -- 播放语音行
     if args ~= nil and args.Defer then
         for k, v in pairs(DeferredPlayVoiceLines) do
             if v[1] == voiceLines then
@@ -570,8 +634,9 @@ function PlayVoiceLines(voiceLines, neverQueue, source, args)
     return PlayVoiceLinesReal(voiceLines, neverQueue, source, args)
 end
 
+-- 实际播放语音行
 function PlayVoiceLinesReal(voiceLines, neverQueue, source, args)
-
+    -- 实际播放语音行
     if voiceLines == nil then
         return
     end
@@ -581,11 +646,13 @@ function PlayVoiceLinesReal(voiceLines, neverQueue, source, args)
     source = GetLineSource(voiceLines, source, args)
     if source == nil then
         -- Never play a line if the source doesn't exist
+        -- 如果源对象不存在，则不播放语音行
         return
     end
 
     if not IsVoiceLineEligible(CurrentRun, voiceLines, nil, nil, source, args) then
         -- First check requirements of the whole set
+        -- 首先检查整个集合的要求
         if voiceLines.PlayedNothingFunctionName ~= nil then
             local playedNothingFunction = _G[voiceLines.PlayedNothingFunctionName]
             if playedNothingFunction ~= nil then
@@ -598,6 +665,7 @@ function PlayVoiceLinesReal(voiceLines, neverQueue, source, args)
     if source.PlayingVoiceLines then
         if voiceLines.Queue == "Interrupt" then
             -- Play as normal
+            -- 正常播放
         else
             if neverQueue then
                 --DebugPrint({ Text = "Skipped voiceLines on "..GetTableString( source.Name, source ) })
@@ -639,8 +707,9 @@ function PlayVoiceLinesReal(voiceLines, neverQueue, source, args)
 
 end
 
+-- 获取语音行源
 function GetLineSource(line, source, args)
-
+    -- 获取语音行源
     if line.ObjectType ~= nil then
         local typeIds = GetIdsByType({Name = line.ObjectType})
         if IsEmpty(typeIds) then
@@ -677,8 +746,9 @@ function GetLineSource(line, source, args)
 
 end
 
+-- 播放单个语音行
 function PlayVoiceLine(line, prevLine, parentLine, source, args)
-
+    -- 播放单个语音行
     local playedSomething = false
 
     if parentLine == nil then
@@ -699,6 +769,7 @@ function PlayVoiceLine(line, prevLine, parentLine, source, args)
     source = GetLineSource(line, source, args)
     if source == nil then
         -- Never play a line if the source doesn't exist
+        -- 如果源对象不存在，则不播放语音行
         return
     end
 
@@ -845,7 +916,9 @@ function PlayVoiceLine(line, prevLine, parentLine, source, args)
 
 end
 
+-- 清理当前语音ID
 function CleanUpCurrentSpeechId(cue, speechId, source, animation)
+    -- 清理当前语音ID
     if speechId == nil then
         return
     end
@@ -856,99 +929,132 @@ function CleanUpCurrentSpeechId(cue, speechId, source, animation)
             CreateAnimation({Name = endAnimation, DestinationId = source.ObjectId, OffsetX = source.AnimOffsetX, OffsetZ = source.AnimOffsetZ})
         end
     end
+    -- 清理当前语音ID
     if CurrentSpeechId == speechId then
         CurrentSpeechId = nil
     end
 end
 
+-- 播放语音提示
 function PlaySpeechCue(cue, source, animation, queue, useSubtitles, subtitleColor, args)
-
+    -- 播放语音提示
     if cue == nil or cue == "" then
         return 0
     end
 
+    -- 获取参数
     args = args or {}
 
+    -- 获取源对象ID
     local sourceId = nil
     if source ~= nil then
         sourceId = source.ObjectId
     end
 
+    -- 播放语音
     local speechId = PlaySpeech({Name = cue, Id = sourceId, Queue = queue, UseSubtitles = useSubtitles, SubtitleColor = subtitleColor, Actor = args.Actor})
+    -- 如果语音播放成功，则播放动画
     if speechId > 0 then
         if source ~= nil and animation ~= nil and ConfigOptionCache.ShowUIAnimations and ConfigOptionCache.ShowSpeechBubble then
             PlayStatusAnimation(source, {Animation = animation})
         end
+        -- 记录当前语音ID
         CurrentSpeechId = speechId
         -- @refactor The SpeechRecord recording is pretty scattered / redundant
+        -- 记录语音播放记录
         SpeechRecord[cue] = true
         CurrentRun.SpeechRecord[cue] = true
+        -- 清理当前语音ID
         thread(CleanUpCurrentSpeechId, cue, speechId, source, animation)
     end
+    -- 返回语音ID
     return speechId
 
 end
 
+-- 从源播放语音提示
 function PlaySpeechCueFromSource(cue, source, useDefaultAnim, queue, useSubtitles, subtitleColor, args)
+    -- 从源播放语音提示
     if PlayingTextLines and not args.AllowTalkOverTextLines then
         return 0
+
     end
+
+    -- 如果源对象为空，则使用英雄对象
     if source == nil then
         source = CurrentRun.Hero
     end
+    -- 如果使用默认动画，则设置动画
     if useDefaultAnim == nil then
         useDefaultAnim = true
     end
+    -- 获取动画名称
     local anim = nil
     if useDefaultAnim then
         anim = StatusAnimations.Speaking
     end
+    -- 播放语音提示
     return PlaySpeechCue(cue, source, anim, queue, useSubtitles, subtitleColor, args)
 end
 
+-- 检查语音是否符合播放条件
 function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, args)
-
+    -- 检查语音是否符合播放条件
     if line == nil then
         return false
     end
 
+    -- 获取参数
     args = args or {}
 
+    -- 如果源对象不为空，则检查源对象条件
     if source ~= nil then
+        -- 如果源对象被魅惑，则返回false
         if line.RequiresFalseCharmed ~= nil and source.Charmed then
             return false
         end
+        -- 如果源对象未被魅惑，则返回false
         if line.RequiresCharmed ~= nil and not source.Charmed then
             return false
         end
+        -- 如果源对象不满足条件，则返回false
         if line.RequiredSourceValue ~= nil and not source[line.RequiredSourceValue] then
             return false
         end
+        -- 如果源对象满足条件，则返回false
         if line.RequiredSourceValueFalse ~= nil and source[line.RequiredSourceValueFalse] then
             return false
         end
     end
 
+    -- 如果参数不为空，则检查参数条件
     if args ~= nil and args.ElapsedTime ~= nil then
+        -- 如果参数时间小于最小时间，则返回false
         if line.RequiredMinElapsedTime ~= nil and args.ElapsedTime < line.RequiredMinElapsedTime then
             return false
         end
+        -- 如果参数时间大于最大时间，则返回false
         if line.RequiredMaxElapsedTime ~= nil and args.ElapsedTime > line.RequiredMaxElapsedTime then
             return false
         end
     end
 
+    -- 如果语音行有显式条件，则检查条件
     if line.ExplicitRequirements or (parentLine ~= nil and parentLine.ExplicitRequirements) then
+        -- 如果语音行不满足条件，则返回false
         if line.GameStateRequirements ~= nil and not IsGameStateEligible(currentRun, line, line.GameStateRequirements) then
             return false
         end
     else
+        -- 如果语音行不满足条件，则返回false
         if not IsGameStateEligible(currentRun, line, line.GameStateRequirements) then
             return false
         end
     end
 
+    -- 如果语音行有播放次数限制，则检查限制
     if line.PlayOnceFromTableThisRun then
+        -- 如果语音行已经播放，则返回false
         for k, subLine in ipairs(line) do
             if subLine.Cue ~= nil and currentRun.SpeechRecord[subLine.Cue] then
                 return false
@@ -956,7 +1062,9 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
         end
     end
 
+    -- 如果语音行有连续播放概率，则检查概率
     if line.SuccessiveChanceToPlay ~= nil then
+        -- 如果语音行已经播放，则返回false
         local anyLinePlayed = false
         for k, subLine in ipairs(line) do
             if subLine.Cue ~= nil and SpeechRecord[subLine.Cue] then
@@ -964,12 +1072,15 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
                 break
             end
         end
+        -- 如果语音行未播放，则返回false
         if anyLinePlayed and not RandomChance(line.SuccessiveChanceToPlay) then
             return false
         end
     end
 
+    -- 如果语音行有连续播放概率，则检查概率
     if line.SuccessiveChanceToPlayAll ~= nil then
+        -- 如果语音行已经播放，则返回false
         local allLinesPlayed = true
         for k, subLine in ipairs(line) do
             if subLine.Cue ~= nil and not SpeechRecord[subLine.Cue] then
@@ -977,14 +1088,18 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
                 break
             end
         end
+        -- 如果语音行未播放，则返回false
         if allLinesPlayed and not RandomChance(line.SuccessiveChanceToPlayAll) then
             return false
         end
     end
 
+    -- 如果语音行有源对象条件，则检查条件
     if line.Cue ~= nil then
 
+        -- 如果语音行有播放次数限制，则检查限制
         if line.PlayOnce or (parentLine ~= nil and parentLine.PlayOnce) then
+            -- 如果语音行已经播放，则返回false
             if args.PlayOnceContext ~= nil then
                 DebugPrint({Text = "checking context = " .. tostring(args.PlayOnceContext)})
                 GameState.SpeechRecordContexts[args.PlayOnceContext] = GameState.SpeechRecordContexts[args.PlayOnceContext] or {}
@@ -996,24 +1111,32 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
             end
         end
 
+        -- 如果语音行有播放次数限制，则检查限制
         if line.PlayOnceThisRun or (parentLine ~= nil and parentLine.PlayOnceThisRun) then
+            -- 如果语音行已经播放，则返回false
             if currentRun.SpeechRecord[line.Cue] then
                 return false
             end
         end
 
+        -- 如果语音行有连续播放概率，则检查概率
         local chanceToPlayAgain = line.ChanceToPlayAgain or (parentLine ~= nil and parentLine.ChanceToPlayAgain)
+        -- 如果语音行已经播放，则返回false
         if chanceToPlayAgain and SpeechRecord[line.Cue] and not RandomChance(chanceToPlayAgain) then
             return false
         end
 
+        -- 如果语音行有冷却时间，则检查冷却时间
         if line.CooldownTime ~= nil then
+            -- 如果语音行未冷却，则返回false
             if not CheckCooldown(line.CooldownName or line.Cue, line.CooldownTime) then
                 --DebugPrint({ Text = "VO blocked from cooldown: "..tostring(line.CooldownName or line.Cue) })
                 return false
             end
         end
+        -- 如果语音行有冷却时间，则检查冷却时间
         if line.Cooldowns ~= nil then
+            -- 如果语音行未冷却，则返回false
             for k, cooldown in pairs(line.Cooldowns) do
                 local cooldownTime = cooldown.Time or line.CooldownTime
                 if cooldownTime == nil and source ~= nil then
@@ -1028,7 +1151,9 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
 
     else
 
+        -- 如果语音行有冷却时间，则检查冷却时间
         if line.CooldownTime ~= nil then
+            -- 如果语音行未冷却，则返回false
             local cooldownName = line.CooldownName
             if cooldownName == nil and line[1] ~= nil then
                 cooldownName = line[1].CooldownName or line[1].Cue
@@ -1038,7 +1163,9 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
                 return false
             end
         end
+        -- 如果语音行有冷却时间，则检查冷却时间
         if line.Cooldowns ~= nil then
+            -- 如果语音行未冷却，则返回false
             for k, cooldown in pairs(line.Cooldowns) do
                 local cooldownTime = cooldown.Time or line.CooldownTime
                 if cooldownTime == nil and source ~= nil then
@@ -1053,22 +1180,28 @@ function IsVoiceLineEligible(currentRun, line, prevLine, parentLine, source, arg
 
     end
 
+    -- 如果语音行需要源对象活着，则检查源对象
     if line.RequiresSourceAlive then
+        -- 如果源对象为空，则返回false
         if line.ObjectType ~= nil then
             local typeIds = GetIdsByType({Name = line.ObjectType})
             local objectId = typeIds[1]
             source = ActiveEnemies[objectId]
         end
+        -- 如果源对象为空或死亡，则返回false
         if source == nil or source.IsDead then
             return false
         end
     end
 
+    -- 如果语音行满足所有条件，则返回true
     return true
 
 end
 
+-- 有时播放战斗结束语音
 function SometimesPlayCombatResolvedVoiceLines()
+    -- 有时播放战斗结束语音
     if not RandomChance(0.25) then
         return
     end
@@ -1082,10 +1215,11 @@ function SometimesPlayCombatResolvedVoiceLines()
     end
 end
 
+-- 环境聊天
 function AmbientChatting(source, args)
 
     -- play a random line from ChattingRepeatable or similar table, from the character source position, with speech bubble; when player gets sufficiently close, play an 'interrupt' line, interrupting the ambient line if it's still playing
-
+    -- 环境聊天
     if args.StartDistance ~= nil then
         local notifyName = "StartDistance" .. source.Name
         NotifyWithinDistanceAny({Ids = {CurrentRun.Hero.ObjectId}, DestinationIds = {source.ObjectId}, Distance = args.StartDistance, Notify = notifyName})
