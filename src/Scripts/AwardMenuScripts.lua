@@ -1,4 +1,5 @@
-﻿OnUsed {"GiftRack",
+-- 当使用礼物架时触发的函数
+OnUsed {"GiftRack",
         function(triggerArgs)
             if CurrentRun.CurrentRoom.BlockKeepsakeMenu and not CanFreeSwapKeepsakes() then
                 CannotUseRackPresentation(triggerArgs.triggeredById)
@@ -10,6 +11,7 @@
         end
 }
 
+-- 更新礼物架的闪光状态
 function UpdateGiftRackShineStatus()
     if ScreenAnchors.AwardMenuSparkleId ~= nil then
         Destroy({Id = ScreenAnchors.AwardMenuSparkleId})
@@ -23,6 +25,7 @@ function UpdateGiftRackShineStatus()
     end
 end
 
+-- 装备上次使用的助手特性
 function EquipLastAssistTrait(eventSource, hero)
     local existingHero = CurrentRun.Hero or hero
     if GameState.LastAssistTrait ~= nil then
@@ -30,11 +33,14 @@ function EquipLastAssistTrait(eventSource, hero)
     end
 end
 
+-- 移除上次使用的助手特性
 function RemoveLastAssistTrait(eventSource)
     if GameState.LastAssistTrait ~= nil then
         UnequipAssist(CurrentRun.Hero, GameState.LastAssistTrait)
     end
 end
+
+-- 装备上次使用的纪念品特性
 function EquipLastAwardTrait(eventSource, hero)
     local existingHero = CurrentRun.Hero or hero
     if GameState.LastAwardTrait ~= nil then
@@ -42,12 +48,14 @@ function EquipLastAwardTrait(eventSource, hero)
     end
 end
 
+-- 移除上次使用的纪念品特性
 function RemoveLastAwardTrait(eventSource)
     if GameState.LastAwardTrait ~= nil then
         UnequipKeepsake(CurrentRun.Hero, GameState.LastAwardTrait)
     end
 end
 
+-- 检查是否有新的特性可用
 function HasNewTraits()
     for npcName, giftData in pairs(GameState.Gift) do
         for s = 1, GetMaxGiftLevel(npcName) do
@@ -63,6 +71,7 @@ function HasNewTraits()
     return false
 end
 
+-- 检查指定的纪念品是否已解锁
 function IsKeepsakeUnlocked(traitName)
     for npcName, giftData in pairs(GameState.Gift) do
         for s = 1, GetMaxGiftLevel(npcName) do
@@ -75,6 +84,7 @@ function IsKeepsakeUnlocked(traitName)
     return false
 end
 
+-- 获取所有可用的纪念品特性
 function GetAvailableKeepsakeTraits()
     local gifts = {}
     for npcName, giftData in pairs(GameState.Gift) do
@@ -90,6 +100,7 @@ function GetAvailableKeepsakeTraits()
     return gifts
 end
 
+-- 获取所有助手特性
 function GetAllAssistTraits()
     local gifts = {}
     for npcName, giftData in pairs(GameState.Gift) do
@@ -107,6 +118,7 @@ function GetAllAssistTraits()
     return gifts
 end
 
+-- 奖励菜单排序函数
 function AwardMenuSort(itemA, itemB)
     if GiftOrderingReverseLookup[itemA.Gift] and GiftOrderingReverseLookup[itemB.Gift] then
         return GiftOrderingReverseLookup[itemA.Gift] < GiftOrderingReverseLookup[itemB.Gift]
@@ -119,6 +131,7 @@ function AwardMenuSort(itemA, itemB)
     return itemA.Level < itemB.Level
 end
 
+-- 启动奖励菜单
 function StartUpAwardMenu(awardMenuObject)
     UIData.AwardMenu.AvailableKeepsakeTraits = GetAvailableKeepsakeTraits()
     UIData.AwardMenu.AvailableAssistTraits = GetAllAssistTraits()
@@ -130,6 +143,7 @@ function StartUpAwardMenu(awardMenuObject)
     end
 end
 
+-- 显示奖励菜单
 function ShowAwardMenu()
     if IsScreenOpen("AwardMenu") then
         return
@@ -146,21 +160,24 @@ function ShowAwardMenu()
     ScreenAnchors.AwardMenuScreen = {Components = {}, UpgradeButtons = {}}
     local components = ScreenAnchors.AwardMenuScreen.Components
 
+    -- 背景
     components.ShopBackgroundDim = CreateScreenComponent({Name = "rectangle01", Group = "Combat_Menu"})
     SetScale({Id = components.ShopBackgroundDim.Id, Fraction = 4})
     SetColor({Id = components.ShopBackgroundDim.Id, Color = {0.15, 0.15, 0.15, 0.85}})
 
     components.ShopBackground = CreateScreenComponent({Name = "AwardMenuBackground", Group = "Combat_Menu", OffsetX = 0, OffsetY = 190})
 
+    -- 关闭按钮
     components.CloseButton = CreateScreenComponent({Name = "ButtonClose", Scale = 0.7, Group = "Combat_Menu"})
     Attach({Id = components.CloseButton.Id, DestinationId = components.ShopBackground.Id, OffsetX = 0, OffsetY = 500})
     components.CloseButton.OnPressedFunctionName = "CloseUpgradeScreen"
     components.CloseButton.ControlHotkey = "Cancel"
 
+    -- 声音效果
     PlaySound({Name = "/SFX/Menu Sounds/GeneralWhooshMENU"})
     PlaySound({Name = "/Leftovers/World Sounds/Caravan Interior/ChestOpen"})
 
-    -- Title
+    -- 标题
     CreateTextBox({Id = components.ShopBackground.Id, Text = "AwardMenu_Title", FontSize = 40, OffsetX = 0, OffsetY = -460, Color = Color.White, Font = "SpectralSCLightTitling", ShadowBlur = 0, ShadowColor = {0, 0, 0, 1}, ShadowOffset = {0, 2}, Justification = "Center"})
     CreateTextBox({Id = components.ShopBackground.Id, Text = "AwardMenu_SubTitle", FontSize = 18, OffsetX = 0, OffsetY = -410, Width = 840, Color = Color.SubTitle, Font = "CrimsonTextItalic", ShadowBlur = 0, ShadowColor = {0, 0, 0, 1}, ShadowOffset = {0, 2}, Justification = "Center"})
     -- CreateTextBox({ Id = components.ShopBackground.Id, Text = "AwardMenu_Hint", FontSize = 14, OffsetX = 0, OffsetY = 420, Width = 840, Color = Color.Gray, Font = "CrimsonTextBoldItalic", ShadowBlur = 0, ShadowColor = {0,0,0,1}, ShadowOffset={0, 2}, Justification = "Center" })
@@ -169,6 +186,7 @@ function ShowAwardMenu()
     CreateTextBox({Id = components.EquipSubtitle.Id, Text = "OemQuestion", FontSize = 24, OffsetX = 600, OffsetY = 100, Width = 840, Color = Color.LightSlateGray, Font = "AlegreyaSansRegular", ShadowBlur = 0, ShadowColor = {0, 0, 0, 1}, ShadowOffset = {0, 2}, Justification = "Center"})
 
     -- Description box
+    -- 描述框
     local descriptionStartX = 1325
     local descriptionStartY = 75
     local descriptionTextOffsetX = 0
@@ -233,9 +251,11 @@ function ShowAwardMenu()
                    LangKoScaleModifier = 0.875,
     })
 
+    -- 初始状态
     ScreenAnchors.AwardMenuScreen.LastTrait = GameState.LastAwardTrait
     ScreenAnchors.AwardMenuScreen.LastAssist = GameState.LastAssistTrait
 
+    -- 创建纪念品图标
     local spacerX = 118
     local spacerY = 165
     local startX = 405
@@ -265,7 +285,8 @@ function ShowAwardMenu()
             UIData.AwardMenu.NewLegendary = true
         end
     end
-    -- Assist trait modifications
+
+    -- 助手特性修改
     spacerX = 198
     startX = 0
     startY = startY + 2 * spacerY + 230
@@ -303,6 +324,7 @@ function ShowAwardMenu()
         ScreenAnchors.AwardMenuScreen[components["Locked" .. itemIndex].Id] = components["Locked" .. itemIndex]
     end
 
+    -- 超级礼物点数显示
     if GameState.LifetimeResourcesGained.SuperGiftPoints ~= nil and GameState.LifetimeResourcesGained.SuperGiftPoints > 0 and hasUnlockedKeepsakes then
         components.CurrentKeys = CreateScreenComponent({Name = "BlankObstacle", Group = "Combat_Menu_TraitTray"})
         CreateTextBox({Id = components.CurrentKeys.Id,
@@ -321,6 +343,7 @@ function ShowAwardMenu()
         })
     end
 
+    -- 初始状态检查
     if not UIData.AwardMenu.HasUnlocked then
         if components["UpgradeToggle1"] ~= nil then
             SetCursorFrame(components["UpgradeToggle1"])
@@ -338,12 +361,13 @@ function ShowAwardMenu()
         thread(PlayVoiceLines, GlobalVoiceLines.OpenedAwardMenuVoiceLines, false)
     end
 
+    -- 保持屏幕打开
     ScreenAnchors.AwardMenuScreen.KeepOpen = true
     thread(HandleWASDInput, ScreenAnchors.AwardMenuScreen)
     HandleScreenInput(ScreenAnchors.AwardMenuScreen)
-
 end
 
+-- 创建纪念品图标
 function CreateKeepsakeIcon(components, args)
     args = args or {}
     local screen = args.Screen
@@ -355,11 +379,13 @@ function CreateKeepsakeIcon(components, args)
     local keyAppend = args.KeyAppend or ""
     local scale = args.Scale or 0.75
 
+    -- 按钮框架
     local buttonKey = "UpgradeToggle" .. itemIndex .. keyAppend
     components[buttonKey .. "Frame"] = CreateScreenComponent({Name = "BlankObstacle", X = localx, Y = localy + 10, Group = "Combat_Menu"})
     SetAnimation({DestinationId = components[buttonKey .. "Frame"].Id, Name = "Keepsake_BackingMenu"})
     SetScale({Id = components[buttonKey .. "Frame"].Id, Fraction = scale})
 
+    -- 按钮
     components[buttonKey] = CreateScreenComponent({Name = "RadioButton", Scale = UIData.AwardMenu.BaseIconScale, X = localx, Y = localy, Group = "Combat_Menu"})
     components[buttonKey].TitleTextBoxId = components.InfoBackground.Id
     components[buttonKey].DescriptionTextBoxId = components.InfoBackgroundDescription.Id
@@ -369,16 +395,19 @@ function CreateKeepsakeIcon(components, args)
     components[buttonKey].ButtonKey = buttonKey
     components[buttonKey].FrameId = components[buttonKey .. "Frame"].Id
 
+    -- 特性数据
     local traitName = upgradeData.Gift
 
     local traitData = GetProcessedTraitData({Unit = CurrentRun.Hero, TraitName = traitName, Rarity = GetRarityKey(GetKeepsakeLevel(traitName))})
     ExtractValues(CurrentRun.Hero, traitData, traitData)
     components[buttonKey].TraitData = traitData
 
+    -- 未解锁状态
     if not upgradeData.Unlocked then
         SetColor({Id = components[buttonKey].Id, Color = Color.DarkSlateGray})
     else
         UIData.AwardMenu.HasUnlocked = true
+        -- 进度条
         components[buttonKey .. "Bar"] = CreateScreenComponent({Name = "KeepsakeBar", X = localx, Y = localy + 80, Group = "Combat_Menu"})
         components[buttonKey .. "Rank"] = CreateScreenComponent({Name = "KeepsakeRank" .. GetKeepsakeLevel(traitData.Name), X = localx, Y = localy + rankOffsetY, Group = "Combat_Menu"})
         components[buttonKey .. "BarFill"] = CreateScreenComponent({Name = "KeepsakeBarFill", X = localx, Y = localy + 80, Group = "Combat_Menu"})
@@ -395,6 +424,7 @@ function CreateKeepsakeIcon(components, args)
 
     components[buttonKey].OnPressedFunctionName = "HandleUpgradeToggle"
     ScreenAnchors.AwardMenuScreen[components[buttonKey].Id] = components[buttonKey]
+    -- 特性图标
     if TraitData[upgradeData.Gift].Icon and upgradeData.Unlocked then
 
         local icon = TraitData[upgradeData.Gift].InRackIcon or TraitData[upgradeData.Gift].Icon
@@ -422,6 +452,7 @@ function CreateKeepsakeIcon(components, args)
         SetAnimation({DestinationId = components[buttonKey].Id, Name = "Keepsake_Unknown"})
     end
 
+    -- 新纪念品标记
     if upgradeData.New then
         UIData.AwardMenu.HasNew = true
         CreateTextBox({Id = components[buttonKey].Id, Text = "NewGiftPrefix", OffsetX = 0, OffsetY = -50,
@@ -434,6 +465,7 @@ function CreateKeepsakeIcon(components, args)
         })
     end
 
+    -- 升级按钮
     if args.AddUpgradeButton and upgradeData.Unlocked then
         components[buttonKey .. "Upgrade"] = CreateScreenComponent({Name = "AssistUpgradeButton", Group = "Combat_Menu_TraitTray", X = ScreenCenterX + 40, Y = 220, Scale = 0.5})
         Attach({Id = components[buttonKey .. "Upgrade"].Id, DestinationId = components[buttonKey].Id, OffsetX = 0, OffsetY = 160})
@@ -460,6 +492,7 @@ function CreateKeepsakeIcon(components, args)
     end
 end
 
+-- 鼠标悬停在助手升级按钮上时的处理
 OnMouseOver {"AssistUpgradeButton",
              function(triggerArgs)
                  if triggerArgs.triggeredById == nil or not IsScreenOpen("AwardMenu") or ScreenAnchors.AwardMenuScreen == nil then
@@ -484,12 +517,14 @@ OnMouseOver {"AssistUpgradeButton",
              end
 }
 
+-- 鼠标离开助手升级按钮时的处理
 OnMouseOff {"AssistUpgradeButton",
             function(triggerArgs)
                 DestroyCursorFrame()
             end
 }
 
+-- 鼠标悬停在传奇纪念品锁定按钮上时的处理
 OnMouseOver {"LegendaryKeepsakeLockedButton",
              function(triggerArgs)
                  if triggerArgs.triggeredById == nil or not IsScreenOpen("AwardMenu") or ScreenAnchors.AwardMenuScreen == nil then
@@ -502,11 +537,14 @@ OnMouseOver {"LegendaryKeepsakeLockedButton",
              end
 }
 
+-- 鼠标离开传奇纪念品锁定按钮时的处理
 OnMouseOff {"LegendaryKeepsakeLockedButton",
             function(triggerArgs)
                 DestroyCursorFrame()
             end
 }
+
+-- 鼠标悬停在单选按钮上时的处理
 OnMouseOver {"RadioButton",
              function(triggerArgs)
                  if triggerArgs.triggeredById == nil or not IsScreenOpen("AwardMenu") or ScreenAnchors.AwardMenuScreen == nil or ScreenAnchors.AwardMenuScreen[triggerArgs.triggeredById] == nil then
@@ -518,6 +556,7 @@ OnMouseOver {"RadioButton",
              end
 }
 
+-- 鼠标离开单选按钮时的处理
 OnMouseOff {"RadioButton",
             function(triggerArgs)
                 if IsScreenOpen("AwardMenu") then
@@ -535,6 +574,7 @@ OnMouseOff {"RadioButton",
             end
 }
 
+-- 设置光标框架
 function SetCursorFrame(button)
     local components = ScreenAnchors.AwardMenuScreen.Components
     if ScreenAnchors.AwardMenuScreen.HoverFrame == nil then
@@ -628,6 +668,7 @@ function SetCursorFrame(button)
     end
 end
 
+-- 销毁光标框架
 function DestroyCursorFrame()
     if ScreenAnchors.AwardMenuScreen ~= nil then
         Destroy({Id = ScreenAnchors.AwardMenuScreen.HoverFrame})
@@ -635,6 +676,7 @@ function DestroyCursorFrame()
     end
 end
 
+-- 设置传奇框架
 function SetLegendaryFrame(id)
 
     if ScreenAnchors.AwardMenuScreen.HoverFrame == nil then
@@ -665,6 +707,7 @@ function SetLegendaryFrame(id)
     ModifyTextBox({Id = button.LevelProgressId, Text = " "})
 end
 
+-- 设置选中框架
 function SetSelectedFrame(button)
     local frameKey = "SelectedFrame"
     local selectedFramedAnimation = UIData.AwardMenu.NormalSelectionFrame
@@ -680,6 +723,7 @@ function SetSelectedFrame(button)
     Teleport({Id = ScreenAnchors.AwardMenuScreen[frameKey], DestinationId = button.Id})
 end
 
+-- 销毁选中框架
 function DestroySelectedFrame()
     Destroy({Id = ScreenAnchors.AwardMenuScreen.SelectedFrame})
     Destroy({Id = ScreenAnchors.AwardMenuScreen.SelectedAssistFrame})
@@ -687,10 +731,12 @@ function DestroySelectedFrame()
     ScreenAnchors.AwardMenuScreen.SelectedAssistFrame = nil
 end
 
+-- 检查是否可以免费交换纪念品
 function CanFreeSwapKeepsakes()
     return (CurrentDeathAreaRoom ~= nil and CurrentDeathAreaRoom.KeepsakeFreeSwap) or CurrentRun.CurrentRoom.KeepsakeFreeSwap
 end
 
+-- 关闭升级屏幕
 function CloseUpgradeScreen(screen, button)
     SetConfigOption({Name = "FreeFormSelectRepeatDelay", Value = 0.0})
     PlaySound({Name = "/SFX/Menu Sounds/GeneralWhooshMENULoudLow"})
@@ -738,6 +784,7 @@ function CloseUpgradeScreen(screen, button)
     UpdateGiftRackShineStatus()
 end
 
+-- 处理升级切换
 function HandleUpgradeToggle(screen, button, textOverride)
     local upgradeName = button.Data.Gift
     local upgradeData = TraitData[upgradeName]
@@ -782,6 +829,7 @@ function GetAssistKeepsakeUpgradeCost(giftName)
     return costTable.Costs[currentLevel]
 end
 
+-- 升级助手纪念品
 function UpgradeAssistKeepsake(screen, button)
     if button.ParentButton.Blocked then
         return
@@ -796,7 +844,7 @@ function UpgradeAssistKeepsake(screen, button)
     local components = ScreenAnchors.AwardMenuScreen.Components
     SetCursorFrame(button.ParentButton)
     HandleUpgradeToggle(screen, button.ParentButton)
-    -- check for maximum
+    -- 检查最大等级
     if HasResource("SuperGiftPoints", cost) and GetAssistKeepsakeLevel(giftName) < 5 then
         IncrementTableValue(GameState.AssistUnlocks, button.GiftName)
         SpendResource("SuperGiftPoints", cost, button.GiftName .. "KeepsakeUpgrade", {Silent = true, SkipUpdateResourceUI = true, })
@@ -861,7 +909,7 @@ function UpgradeAssistKeepsake(screen, button)
         MaxxedOutKeepsakeUpgrade(button)
         thread(PlayVoiceLines, GlobalVoiceLines.MaxedLegendaryVoiceLines, false)
     else
-        -- can't afford presentation'
+        -- 不能够升级
         CannotAffordKeepsakeUpgrade(button)
         thread(PlayVoiceLines, HeroVoiceLines.NotEnoughSuperGiftPointsVoiceLines, false)
         if not IsKeepsakeMaxed(button.GiftName) then
