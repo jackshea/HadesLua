@@ -1,3 +1,4 @@
+-- 当投射物被反射时触发的事件处理
 OnProjectileReflect {
     function(triggerArgs)
         if CheckCooldown("ParryAttackPresentation", 0.25) then
@@ -19,6 +20,7 @@ OnProjectileReflect {
     end
 }
 
+-- 当投射物被阻挡时触发的事件处理
 OnProjectileBlock {
     function(triggerArgs)
         local weaponName = triggerArgs.WeaponName
@@ -59,12 +61,14 @@ OnProjectileBlock {
     end
 }
 
+-- 当玩家闪避时触发的事件处理
 OnDodge {"_PlayerUnit",
          function(triggerArgs)
              PlayerDodgePresentation()
          end
 }
 
+-- 当远程武器发射时触发的事件处理
 OnWeaponFired {"RangedWeapon",
                function(triggerArgs)
                    if IsMetaUpgradeActive("ReloadAmmoMetaUpgrade") then
@@ -85,6 +89,7 @@ OnWeaponFired {"RangedWeapon",
                end
 }
 
+-- 当枪械武器发射时触发的事件处理
 OnWeaponFired {"GunWeapon GunWeaponDash SniperGunWeapon SniperGunWeaponDash",
                function(triggerArgs)
                    thread(UpdateGunUI, triggerArgs)
@@ -109,12 +114,14 @@ OnWeaponFired {"GunWeapon GunWeaponDash SniperGunWeapon SniperGunWeaponDash",
                end
 }
 
+-- 当重装控制键被按下时触发的事件处理
 OnControlPressed {"Reload",
                   function(triggerArgs)
                       ManualReload(CurrentRun.Hero)
                   end
 }
 
+-- 当武器触发释放时触发的事件处理
 OnWeaponTriggerRelease {
     function(triggerArgs)
 
@@ -142,6 +149,7 @@ OnWeaponTriggerRelease {
     end
 }
 
+-- 手动重装函数
 function ManualReload(attacker)
 
     if not IsInputAllowed({}) then
@@ -184,6 +192,7 @@ function ManualReload(attacker)
     end
 end
 
+-- 枪械重装函数
 function ReloadGun(attacker, weaponData)
     if attacker.HandlingDeath or attacker.Reloading or attacker.SurgeActive then
         return false
@@ -221,6 +230,7 @@ function ReloadGun(attacker, weaponData)
     return true
 end
 
+-- 治疗函数
 function Heal(victim, triggerArgs)
 
     if victim == nil or victim.Health == nil or victim.Health == victim.MaxHealth then
@@ -276,6 +286,7 @@ function Heal(victim, triggerArgs)
 
 end
 
+-- 添加传入伤害修饰器
 function AddIncomingDamageModifier(unit, data)
     if unit == nil then
         return
@@ -289,6 +300,7 @@ function AddIncomingDamageModifier(unit, data)
     table.insert(unit.IncomingDamageModifiers, data)
 end
 
+-- 添加传出生命窃取修饰器
 function AddOutgoingLifestealModifier(unit, data)
     if unit == nil then
         return
@@ -300,6 +312,7 @@ function AddOutgoingLifestealModifier(unit, data)
     table.insert(unit.OutgoingLifestealModifiers, data)
 end
 
+-- 记录速度修饰器
 function RecordSpeedModifier(modifier, duration)
     if CurrentRun.Hero.IsDead or not duration then
         return
@@ -320,6 +333,7 @@ function RecordSpeedModifier(modifier, duration)
     end
 end
 
+-- 添加传出伤害修饰器
 function AddOutgoingDamageModifier(unit, data)
     if unit == nil then
         return
@@ -335,6 +349,7 @@ function AddOutgoingDamageModifier(unit, data)
     table.insert(unit.OutgoingDamageModifiers, data)
 end
 
+-- 移除传入伤害修饰器
 function RemoveIncomingDamageModifier(unit, name)
     for i, data in pairs(unit.IncomingDamageModifiers) do
         if data.Name == name then
@@ -345,6 +360,7 @@ function RemoveIncomingDamageModifier(unit, name)
     unit.IncomingDamageModifiers = CollapseTable(unit.IncomingDamageModifiers)
 end
 
+-- 检查是否有传入伤害修饰器
 function HasIncomingDamageModifier(unit, name)
     if unit == nil or unit.IncomingDamageModifiers == nil then
         return false
@@ -357,6 +373,7 @@ function HasIncomingDamageModifier(unit, name)
     return false
 end
 
+-- 检查是否有传出伤害修饰器
 function HasOutgoingDamageModifier(unit, name)
     if unit == nil or unit.OutgoingDamageModifiers == nil then
         return false
@@ -369,6 +386,7 @@ function HasOutgoingDamageModifier(unit, name)
     return false
 end
 
+-- 计算伤害加成
 function CalculateDamageAdditions(attacker, victim, triggerArgs)
     local damageAddition = 0
     if attacker ~= nil and attacker.OutgoingDamageModifiers ~= nil then
@@ -389,6 +407,7 @@ function CalculateDamageAdditions(attacker, victim, triggerArgs)
     return damageAddition
 end
 
+-- 计算伤害倍增器
 function CalculateDamageMultipliers(attacker, victim, weaponData, triggerArgs)
     local damageReductionMultipliers = 1
     local damageMultipliers = 1.0
@@ -674,6 +693,7 @@ function CalculateDamageMultipliers(attacker, victim, weaponData, triggerArgs)
     return damageMultipliers * damageReductionMultipliers
 end
 
+-- 计算生命窃取修饰器
 function CalculateLifestealModifiers(attacker, victim, weaponData, triggerArgs)
     local lifesteal = 0
     if attacker ~= nil and attacker.OutgoingLifestealModifiers and victim ~= nil and not victim.BlockLifeSteal then
@@ -695,6 +715,7 @@ function CalculateLifestealModifiers(attacker, victim, weaponData, triggerArgs)
     Heal(attacker, {HealAmount = lifesteal, SourceName = "CombatLifesteal", Silent = false})
 end
 
+-- 检查是否有存储弹药脆弱性倍增器
 function HasStoredAmmoVulnerabilityMultiplier(victim, attacker)
     if attacker == nil or attacker.OutgoingDamageModifiers == nil or victim == nil or IsEmpty(victim.StoredAmmo) then
         return false
@@ -715,10 +736,12 @@ function HasStoredAmmoVulnerabilityMultiplier(victim, attacker)
     return false
 end
 
+-- 检查是否应用了脆弱性效果
 function HasVulnerabilityEffectApplied(victim)
     return victim.VulnerabilityEffects ~= nil and GetNumMetaUpgrades("VulnerabilityEffectBonusMetaUpgrade") > 0 and TableLength(victim.VulnerabilityEffects) >= MetaUpgradeData.VulnerabilityEffectBonusMetaUpgrade.AddOutgoingDamageModifiers.MinRequiredVulnerabilityEffects
 end
 
+-- 伤害函数
 function Damage(victim, triggerArgs)
 
     if victim == nil or victim.Health == nil or (victim.IsDead and not triggerArgs.PureDamage) then
@@ -833,6 +856,7 @@ function Damage(victim, triggerArgs)
 
 end
 
+-- 计算简单模式下的伤害倍增器
 function CalcEasyModeMultiplier(level)
     if GameState == nil then
         return 0
@@ -841,6 +865,7 @@ function CalcEasyModeMultiplier(level)
     return easyModeMultiplier
 end
 
+-- 敌人伤害函数
 function DamageEnemy(victim, triggerArgs)
 
     local sourceWeaponData = triggerArgs.AttackerWeaponData
@@ -1001,6 +1026,7 @@ function DamageEnemy(victim, triggerArgs)
 
 end
 
+-- 构建愤怒计量条
 function BuildRageMeter(currentRun, meterAmount, enemy)
     if enemy.Enraged then
         return
@@ -1019,6 +1045,7 @@ function BuildRageMeter(currentRun, meterAmount, enemy)
     end
 end
 
+-- 消耗rally health
 function DrainRallyHealth()
     if CurrentRun.Hero.RallyHealth.RallyDecayRateSeconds <= 0 then
         CurrentRun.Hero.RallyHealth.Store = 0
@@ -1046,11 +1073,13 @@ function DrainRallyHealth()
     RemoveRallyHealth()
 end
 
+-- 移除rally health
 function RemoveRallyHealth()
     CurrentRun.Hero.RallyHealth.Store = 0
     CurrentRun.Hero.RallyHealth.State = "Idle"
 end
 
+-- 获取武器数据
 function GetWeaponData(unit, weaponName)
     if not unit or not unit.WeaponDataOverride or not unit.WeaponDataOverride[weaponName] then
         return WeaponData[weaponName]
@@ -1059,6 +1088,7 @@ function GetWeaponData(unit, weaponName)
     end
 end
 
+-- 处理健康缓冲
 function ProcessHealthBuffer(enemy, damageEventArgs)
 
     local sourceWeaponData = WeaponData[damageEventArgs.SourceWeapon]
@@ -1097,6 +1127,7 @@ function ProcessHealthBuffer(enemy, damageEventArgs)
 
 end
 
+-- 处理敌人健康缓冲
 function DoEnemyHealthBuffered(enemy)
     if enemy.OnHealthBufferedFunctionName ~= nil then
         _G[enemy.OnHealthBufferedFunctionName](enemy)
@@ -1105,6 +1136,7 @@ function DoEnemyHealthBuffered(enemy)
     SetUnitProperty({Property = "ImmuneToStun", Value = true, DestinationId = enemy.ObjectId})
 end
 
+-- 处理敌人健康缓冲耗尽
 function DoEnemyHealthBufferDeplete(enemy)
     if enemy.OnHealthBufferDepleteFunctionName ~= nil then
         _G[enemy.OnHealthBufferDepleteFunctionName](enemy)
